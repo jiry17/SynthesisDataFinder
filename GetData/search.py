@@ -89,12 +89,13 @@ def check_all_files(path, total_numbers, project_name):
 
 def find_query(repositories, total_numbers):
     if repositories["size"] > kMaxSize:
-        return 0;
+        return 0
     if not os.path.exists('code/' + str(repositories['id'])):
         os.makedirs('code/' + str(repositories['id']))
         os.system('git clone ' + repositories['html_url'] + '.git code/' + str(repositories['id']));
     result = check_all_files('code/' + str(repositories['id']), total_numbers, repositories['name'])
     # Save the memory
-    shutil.rmtree('code/' + str(repositories['id']))
+    if os.path.exists('code/' + str(repositories['id'])):
+        shutil.rmtree('code/' + str(repositories['id']))
     return result
 

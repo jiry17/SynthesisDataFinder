@@ -29,9 +29,10 @@
       // DeepAPILearning
       ```
 
-   3. 结果会存储在项目目录下的 dataset 文件夹中。
+   3. 最后在 GetData 目录下运行 ```python3 ../GetRelativeCodes/getcode.py l r```，其中 l,r 表示查找 ```l.java``` 到 ```r.java``` 的相关代码。
+
+   4. 结果会存储在项目目录下的 dataset 文件夹中。
 
    ​
 
-    
 
