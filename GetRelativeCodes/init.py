@@ -1,7 +1,6 @@
 import os
 import shutil
 
-
 def init(code_id, work_dict):
     if not os.path.exists("../dataset"):
         os.makedirs("../dataset")
@@ -23,7 +22,6 @@ def init(code_id, work_dict):
 
     code_path = "../GetData/data/" + str(code_id) + ".java"
     os.system("cp " + code_path + " " + work_dict)
-
 
 def get_unique(in_list):
     S = {}

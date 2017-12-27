@@ -1,18 +1,23 @@
 import search
 import init
+import re
+
+
+def trim(s):
+    return re.sub("[\s+]", "", s)
 
 
 def getrelativecodes(code_id):
     code_file = open("../GetData/data/" + str(code_id) + ".java", "r")
     work_dic = "../dataset/data" + str(code_id)
     init.init(code_id, work_dic)
+    s = search.login()
 
     method_token = code_file.readline()[3: -1]
     type_token = code_file.readline()[3: -1]
     source_project = code_file.readline()[3: -1]
+    source_code = trim(code_file.read())
     candidate_tokens = init.parse_token(type_token, method_token)
-
-    s = search.login()
 
     print("Searching on github")
     url = ""
@@ -35,6 +40,8 @@ def getrelativecodes(code_id):
     for code in codes:
         if len(code) == 0:
             continue
+        if source_code.find(trim(code)) != -1:
+            continue
         code_Id += 1
         outputcode = open(work_dic + "/code/" + str(code_Id) +
                           ".java", "w", encoding='utf-8')
@@ -43,6 +50,8 @@ def getrelativecodes(code_id):
 
     for code in badcodes:
         if len(code) == 0:
+            continue
+        if source_code.find(trim(code)) != -1:
             continue
         badcode_Id += 1
         outputcode = open(work_dic + "/badcode/" + str(badcode_Id) +

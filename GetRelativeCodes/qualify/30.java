@@ -1,48 +1,123 @@
-import java.util.*;
-import java.io.*;
+/*
+ * Hibernate, Relational Persistence for Idiomatic Java
+ *
+ * License: GNU Lesser General Public License (LGPL), version 2.1 or later.
+ * See the lgpl.txt file in the root directory or <http://www.gnu.org/licenses/lgpl-2.1.html>.
+ */
+package org.hibernate.type.descriptor.java;
 
-public class p2 {
+import java.sql.Time;
+import java.sql.Timestamp;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.OffsetDateTime;
+import java.time.OffsetTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.GregorianCalendar;
 
-	public static void main(String[] args) {
-		
-		try {
-			Scanner in = new Scanner(new FileReader("C:/Users/THMKG/Downloads/ECOOCS_2013/Round 1/data/DATA21.txt"));
-			for (int i =0; i< 5; i++) {
-				for (int b =0; b< 5; b++) {
-					int finalTotal  = 0;
-					String baseString = in.next();
-					char[] base = baseString.toCharArray();
-					for (int d = 0; d < base.length; d++) {
-						//System.out.print(base[d]);
-						int digit = Integer.parseInt(Character.toString(base[d]));
-						//System.out.println(digit);
-						if (base.length %2 == 0)  {
-							if ((d+1) %2 == 0)  {
-								digit *= 2;
-								finalTotal += (digit%10) + (digit-digit%10)/10;
-								//System.out.println((digit%10) + (digit-digit%10)/10 + " s");
-							} else {
-								finalTotal += digit;
-								//System.out.println(digit + " d");
-							}
-						} else {
-							if ((d+1) %2 == 0)  {
-								finalTotal += digit;
-								//System.out.println(digit + " d");
-							} else {
-								digit *= 2;
-								finalTotal += (digit%10) + (digit-digit%10)/10;
-								//System.out.println((digit%10) + (digit-digit%10)/10 + " s");
-							}
-						}
-					}
-					System.out.print(((10-finalTotal%10)==10)?"0":(10-finalTotal%10));
-					//System.out.println();
-				}
-				System.out.println();
-			}
-		} catch(Exception e) {
-			e.printStackTrace();
+import org.hibernate.type.OffsetTimeType;
+import org.hibernate.type.descriptor.WrapperOptions;
+
+/**
+ * Java type descriptor for the LocalDateTime type.
+ *
+ * @author Steve Ebersole
+ */
+public class OffsetTimeJavaDescriptor extends AbstractTypeDescriptor<OffsetTime> {
+	/**
+	 * Singleton access
+	 */
+	public static final OffsetTimeJavaDescriptor INSTANCE = new OffsetTimeJavaDescriptor();
+
+	@SuppressWarnings("unchecked")
+	public OffsetTimeJavaDescriptor() {
+		super( OffsetTime.class, ImmutableMutabilityPlan.INSTANCE );
+	}
+
+	@Override
+	public String toString(OffsetTime value) {
+		return OffsetTimeType.FORMATTER.format( value );
+	}
+
+	@Override
+	public OffsetTime fromString(String string) {
+		return (OffsetTime) OffsetTimeType.FORMATTER.parse( string );
+	}
+
+	@Override
+	@SuppressWarnings("unchecked")
+	public <X> X unwrap(OffsetTime offsetTime, Class<X> type, WrapperOptions options) {
+		if ( offsetTime == null ) {
+			return null;
 		}
+
+		if ( OffsetTime.class.isAssignableFrom( type ) ) {
+			return (X) offsetTime;
+		}
+
+		if ( java.sql.Time.class.isAssignableFrom( type ) ) {
+			return (X) java.sql.Time.valueOf( offsetTime.toLocalTime() );
+		}
+
+		final ZonedDateTime zonedDateTime = offsetTime.atDate( LocalDate.of( 1970, 1, 1 ) ).toZonedDateTime();
+
+		if ( Timestamp.class.isAssignableFrom( type ) ) {
+			return (X) Timestamp.valueOf( zonedDateTime.toLocalDateTime() );
+		}
+
+		if ( Calendar.class.isAssignableFrom( type ) ) {
+			return (X) GregorianCalendar.from( zonedDateTime );
+		}
+
+		final Instant instant = zonedDateTime.toInstant();
+
+		if ( Long.class.isAssignableFrom( type ) ) {
+			return (X) Long.valueOf( instant.toEpochMilli() );
+		}
+
+		if ( java.util.Date.class.isAssignableFrom( type ) ) {
+			return (X) java.util.Date.from( instant );
+		}
+
+		throw unknownUnwrap( type );
+	}
+
+	@Override
+	public <X> OffsetTime wrap(X value, WrapperOptions options) {
+		if ( value == null ) {
+			return null;
+		}
+
+		if ( OffsetTime.class.isInstance( value ) ) {
+			return (OffsetTime) value;
+		}
+
+		if ( Time.class.isInstance( value ) ) {
+			return ( (Time) value ).toLocalTime().atOffset( OffsetDateTime.now().getOffset() );
+		}
+
+		if ( Timestamp.class.isInstance( value ) ) {
+			final Timestamp ts = (Timestamp) value;
+			return OffsetTime.ofInstant( ts.toInstant(), ZoneId.systemDefault() );
+		}
+
+		if ( Date.class.isInstance( value ) ) {
+			final Date date = (Date) value;
+			return OffsetTime.ofInstant( date.toInstant(), ZoneId.systemDefault() );
+		}
+
+		if ( Long.class.isInstance( value ) ) {
+			return OffsetTime.ofInstant( Instant.ofEpochMilli( (Long) value ), ZoneId.systemDefault() );
+		}
+
+		if ( Calendar.class.isInstance( value ) ) {
+			final Calendar calendar = (Calendar) value;
+			return OffsetTime.ofInstant( calendar.toInstant(), calendar.getTimeZone().toZoneId() );
+		}
+
+		throw unknownWrap( value.getClass() );
 	}
 }

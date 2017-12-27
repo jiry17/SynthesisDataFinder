@@ -1,39 +1,64 @@
-import java.io.*;
-import java.util.*;
-class alphanumber
-{
-public static void main(String args[])
-{
-String s;
-Scanner scr=new Scanner(System.in);
-s=scr.next();
-int l=s.length();
-char c[]=s.toCharArray();
-for(int i=0;i<l;i++)
-{
-int j=i+1;
-int k=j+1;
-if((j<l)&&(k<l))
-{
-if((Character.isDigit(c[j]))&&(Character.isDigit(c[k])))
-{
-String st=String.valueOf(c[j])+String.valueOf(c[k]);
-int r=Integer.parseInt(st);
-for(int m=0;m<r;m++)
-{
-System.out.print(c[i]);
-}
-}
-else if(Character.isDigit(c[j]))
-{
-String str=String.valueOf(c[j]);
-int rr=Integer.parseInt(str);
-for(int m=0;m<rr;m++)
-{
-System.out.print(c[i]);
-}
-}
-}
-}
-}
+/**
+ *    Copyright 2009-2017 the original author or authors.
+ *
+ *    Licensed under the Apache License, Version 2.0 (the "License");
+ *    you may not use this file except in compliance with the License.
+ *    You may obtain a copy of the License at
+ *
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *    Unless required by applicable law or agreed to in writing, software
+ *    distributed under the License is distributed on an "AS IS" BASIS,
+ *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *    See the License for the specific language governing permissions and
+ *    limitations under the License.
+ */
+package org.apache.ibatis.type;
+
+import java.sql.CallableStatement;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Time;
+import java.time.OffsetTime;
+
+import org.apache.ibatis.lang.UsesJava8;
+
+/**
+ * @since 3.4.5
+ * @author Tomas Rohovsky
+ */
+@UsesJava8
+public class OffsetTimeTypeHandler extends BaseTypeHandler<OffsetTime> {
+
+  @Override
+  public void setNonNullParameter(PreparedStatement ps, int i, OffsetTime parameter, JdbcType jdbcType)
+          throws SQLException {
+    ps.setTime(i, Time.valueOf(parameter.toLocalTime()));
+  }
+
+  @Override
+  public OffsetTime getNullableResult(ResultSet rs, String columnName) throws SQLException {
+    Time time = rs.getTime(columnName);
+    return getOffsetTime(time);
+  }
+
+  @Override
+  public OffsetTime getNullableResult(ResultSet rs, int columnIndex) throws SQLException {
+    Time time = rs.getTime(columnIndex);
+    return getOffsetTime(time);
+  }
+
+  @Override
+  public OffsetTime getNullableResult(CallableStatement cs, int columnIndex) throws SQLException {
+    Time time = cs.getTime(columnIndex);
+    return getOffsetTime(time);
+  }
+
+  private static OffsetTime getOffsetTime(Time time) {
+    if (time != null) {
+      return time.toLocalTime().atOffset(OffsetTime.now().getOffset());
+    }
+    return null;
+  }
 }

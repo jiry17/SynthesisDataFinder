@@ -1,20 +1,41 @@
-package com.sam.demo.utility;
 
-public class FindDigitInString {
+package com.ly.zmn48644.mybatis.type;
 
-	public static void main(String[] args) {
-		String str = "sachin123mutkure45";
-		char ch[] = str.toCharArray();
-		String digit="";
-		int sum = 0;
-		
-		for(int i=0;i<ch.length;i++){
-			if(Character.isDigit(ch[i])){
-				digit = digit + ch[i];
-				sum = sum + Character.getNumericValue(ch[i]);
-				//sum = sum + Integer.parseInt(String.valueOf(ch[i]));
-			}
-		}
-		System.out.println("Digits: "+digit +" : Sum Of Digits"+sum);
-	}
+import java.sql.*;
+import java.time.OffsetTime;
+
+
+ //@UsesJava8
+public class OffsetTimeTypeHandler extends BaseTypeHandler<OffsetTime> {
+
+  @Override
+  public void setNonNullParameter(PreparedStatement ps, int i, OffsetTime parameter, JdbcType jdbcType)
+          throws SQLException {
+    ps.setTime(i, Time.valueOf(parameter.toLocalTime()));
+  }
+
+  @Override
+  public OffsetTime getNullableResult(ResultSet rs, String columnName) throws SQLException {
+    Time time = rs.getTime(columnName);
+    return getOffsetTime(time);
+  }
+
+  @Override
+  public OffsetTime getNullableResult(ResultSet rs, int columnIndex) throws SQLException {
+    Time time = rs.getTime(columnIndex);
+    return getOffsetTime(time);
+  }
+
+  @Override
+  public OffsetTime getNullableResult(CallableStatement cs, int columnIndex) throws SQLException {
+    Time time = cs.getTime(columnIndex);
+    return getOffsetTime(time);
+  }
+
+  private static OffsetTime getOffsetTime(Time time) {
+    if (time != null) {
+      return time.toLocalTime().atOffset(OffsetTime.now().getOffset());
+    }
+    return null;
+  }
 }

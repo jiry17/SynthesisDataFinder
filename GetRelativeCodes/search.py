@@ -5,6 +5,8 @@ import os
 import sys
 import chardet
 import time
+import datetime
+import json
 from threading import Thread
 from queue import Queue
 
@@ -39,7 +41,7 @@ password = cp.get('my', 'password')
 threadnum = int(cp.get('my', 'threads'))
 
 
-def login():
+def login() -> object:
     url = 'https://github.com/login'
     head = {
         "user-agent": "Mozilla/5.0 (Windows NT 6.3; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/60.0.3112.90 Safari/537.36",
@@ -58,6 +60,27 @@ def login():
     }
     s.post('https://github.com/session', headers=head, data=payload)
     return s
+
+
+def parse_date_time(time_string):
+    return datetime.datetime.strptime(time_string, "%Y-%m-%dT%H:%M:%SZ")
+
+
+def get_create_time(s, source_name):
+    uri = "https://api.github.com/search/repositories?q=" + source_name
+    html = ""
+    for i in range(10):
+        html = s.get(uri).text
+        if html.find("But here's the good news") != -1:
+            html = ""
+            time.sleep(1)
+            continue
+    if len(html) == 0:
+        print("failed")
+        return [False, ""]
+    result_list = json.loads(html)
+    print(html)
+    return [True, parse_date_time(result_list["items"][0]["created_at"])]
 
 
 def checksearch(html):
@@ -95,7 +118,6 @@ def gethtml(s, url):
 
 
 def gethtmleasy(s, url):
-    # print url
     for t in range(trytime):
         page = s.get(url)
         html = page.content

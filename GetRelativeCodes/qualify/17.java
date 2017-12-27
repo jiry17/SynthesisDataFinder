@@ -1,41 +1,64 @@
-import java.util.Scanner;
+/**
+ *    Copyright 2009-2017 the original author or authors.
+ *
+ *    Licensed under the Apache License, Version 2.0 (the "License");
+ *    you may not use this file except in compliance with the License.
+ *    You may obtain a copy of the License at
+ *
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *    Unless required by applicable law or agreed to in writing, software
+ *    distributed under the License is distributed on an "AS IS" BASIS,
+ *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *    See the License for the specific language governing permissions and
+ *    limitations under the License.
+ */
+package org.apache.ibatis.type;
 
-public class Numerology {
-	public static void main(String[] args) {
-		Scanner sc = new Scanner(System.in);
-		String[] input = sc.nextLine().split("\\W+");
-		long sum = 0;
-		int charPosition = 0;
-		int day = Integer.parseInt(input[0]);
-		int month = Integer.parseInt(input[1]);
-		int year = Integer.parseInt(input[2]);
-		String userName = input[3];
-		sum = day * month * year;
-		if (month % 2 != 0) {
-			sum = sum * sum;
-		}
-		char[] name = userName.toCharArray();
-		for (char c : name) {
-			charPosition = (Character.toLowerCase(c) - 'a') + 1;
-			if (Character.isUpperCase(c) && !Character.isDigit(c)) {
-				sum += charPosition * 2;
-			} else if (Character.isDigit(c)) {
-				sum += Integer.parseInt(Character.toString(c));
-			} else if (!Character.isDigit(c)) {
-				sum += charPosition;
-			}
-		}
-		do {
-			char[] numbers = String.valueOf(sum).toCharArray();
-			if (sum >= 13) {
-				sum = 0;
-				for (char c : numbers) {
-					sum += Integer.parseInt(Character.toString(c));
-				}
-			}
-			numbers = null;
-		} while (sum >= 13);
-		System.out.println(sum);
-		sc.close();
-	}
+import java.sql.CallableStatement;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Time;
+import java.time.OffsetTime;
+
+import org.apache.ibatis.lang.UsesJava8;
+
+/**
+ * @since 3.4.5
+ * @author Tomas Rohovsky
+ */
+@UsesJava8
+public class OffsetTimeTypeHandler extends BaseTypeHandler<OffsetTime> {
+
+  @Override
+  public void setNonNullParameter(PreparedStatement ps, int i, OffsetTime parameter, JdbcType jdbcType)
+          throws SQLException {
+    ps.setTime(i, Time.valueOf(parameter.toLocalTime()));
+  }
+
+  @Override
+  public OffsetTime getNullableResult(ResultSet rs, String columnName) throws SQLException {
+    Time time = rs.getTime(columnName);
+    return getOffsetTime(time);
+  }
+
+  @Override
+  public OffsetTime getNullableResult(ResultSet rs, int columnIndex) throws SQLException {
+    Time time = rs.getTime(columnIndex);
+    return getOffsetTime(time);
+  }
+
+  @Override
+  public OffsetTime getNullableResult(CallableStatement cs, int columnIndex) throws SQLException {
+    Time time = cs.getTime(columnIndex);
+    return getOffsetTime(time);
+  }
+
+  private static OffsetTime getOffsetTime(Time time) {
+    if (time != null) {
+      return time.toLocalTime().atOffset(OffsetTime.now().getOffset());
+    }
+    return null;
+  }
 }

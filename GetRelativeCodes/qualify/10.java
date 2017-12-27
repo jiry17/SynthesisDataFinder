@@ -1,43 +1,64 @@
-package squaredigitchains;
+/**
+ *    Copyright 2009-2017 the original author or authors.
+ *
+ *    Licensed under the Apache License, Version 2.0 (the "License");
+ *    you may not use this file except in compliance with the License.
+ *    You may obtain a copy of the License at
+ *
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *    Unless required by applicable law or agreed to in writing, software
+ *    distributed under the License is distributed on an "AS IS" BASIS,
+ *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *    See the License for the specific language governing permissions and
+ *    limitations under the License.
+ */
+package org.apache.ibatis.type;
 
-public class SquareDigitChains {
+import java.sql.CallableStatement;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Time;
+import java.time.OffsetTime;
 
-	public SquareDigitChains() {
-		
-		int counter = 0;
-		for (int i = 1; i < 10000000; i++) {
-			
-			char[] letters = Integer.toString(i).toCharArray();
-			
-			if(i % 1000000 == 0) {
-				System.out.println("i: " + i);
-				System.out.println("counter: " + counter);
-			}
-			
-			int sum = 0;
-			
-			do {
-				sum = 0;
-				
-				for (int j = 0; j < letters.length; j++) {
-					sum += Math.pow(Integer.parseInt(Character.toString(letters[j])), 2) ;
-				}
-				
-				letters = Integer.toString(sum).toCharArray();
-				
-				if(sum == 89)
-					counter++;
-				
-			} while (!(sum == 1 || sum == 89));
-			
-		}
-		
-		System.out.println(counter);
-	}
+import org.apache.ibatis.lang.UsesJava8;
 
-	public static void main(String[] args) {
-		new SquareDigitChains();
+/**
+ * @since 3.4.5
+ * @author Tomas Rohovsky
+ */
+@UsesJava8
+public class OffsetTimeTypeHandler extends BaseTypeHandler<OffsetTime> {
 
-	}
+  @Override
+  public void setNonNullParameter(PreparedStatement ps, int i, OffsetTime parameter, JdbcType jdbcType)
+          throws SQLException {
+    ps.setTime(i, Time.valueOf(parameter.toLocalTime()));
+  }
 
+  @Override
+  public OffsetTime getNullableResult(ResultSet rs, String columnName) throws SQLException {
+    Time time = rs.getTime(columnName);
+    return getOffsetTime(time);
+  }
+
+  @Override
+  public OffsetTime getNullableResult(ResultSet rs, int columnIndex) throws SQLException {
+    Time time = rs.getTime(columnIndex);
+    return getOffsetTime(time);
+  }
+
+  @Override
+  public OffsetTime getNullableResult(CallableStatement cs, int columnIndex) throws SQLException {
+    Time time = cs.getTime(columnIndex);
+    return getOffsetTime(time);
+  }
+
+  private static OffsetTime getOffsetTime(Time time) {
+    if (time != null) {
+      return time.toLocalTime().atOffset(OffsetTime.now().getOffset());
+    }
+    return null;
+  }
 }

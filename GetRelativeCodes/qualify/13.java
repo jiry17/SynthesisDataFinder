@@ -1,32 +1,35 @@
-package com.ssi.schaefer.writeFilesByNFS.utils;
-
-public class ExtractUtils {
-
-	public int getJustNumbersFrom(String txt) {
-		String digit = "";
-		char[] myChars = txt.toCharArray();
-		for (char myChar : myChars) {
-			if (Character.isDigit(myChar)) {
-				digit += myChar;
-			}
+	@Override
+	public <X> OffsetTime wrap(X value, WrapperOptions options) {
+		if ( value == null ) {
+			return null;
 		}
-		return Integer.parseInt(digit);
-	}
 
-	public String getJustLettersFrom(String txt) {
-		String digit = "";
-		char[] myChars = txt.toCharArray();
-		for (char myChar : myChars) {
-			if (Character.isAlphabetic(myChar)) {
-				digit += myChar;
-			}
+		if ( OffsetTime.class.isInstance( value ) ) {
+			return (OffsetTime) value;
 		}
-		return digit;
-	}
 
-	public String[] getJustSplited(String txt) {
-		String[] list = txt.split("-");
-		return list;
-	}
+		if ( Time.class.isInstance( value ) ) {
+			return ( (Time) value ).toLocalTime().atOffset( OffsetDateTime.now().getOffset() );
+		}
 
-}
+		if ( Timestamp.class.isInstance( value ) ) {
+			final Timestamp ts = (Timestamp) value;
+			return OffsetTime.ofInstant( ts.toInstant(), ZoneId.systemDefault() );
+		}
+
+		if ( Date.class.isInstance( value ) ) {
+			final Date date = (Date) value;
+			return OffsetTime.ofInstant( date.toInstant(), ZoneId.systemDefault() );
+		}
+
+		if ( Long.class.isInstance( value ) ) {
+			return OffsetTime.ofInstant( Instant.ofEpochMilli( (Long) value ), ZoneId.systemDefault() );
+		}
+
+		if ( Calendar.class.isInstance( value ) ) {
+			final Calendar calendar = (Calendar) value;
+			return OffsetTime.ofInstant( calendar.toInstant(), calendar.getTimeZone().toZoneId() );
+		}
+
+		throw unknownWrap( value.getClass() );
+	}
